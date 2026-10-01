@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------
+# QA runner image: Node + Chromium + pa11y-ci + Lighthouse CI.
+# Runs the accessibility and performance gates against any URL
+# (set BASE_URL), so the gates behave the same on a laptop, in
+# Jenkins, or in any CI that can run Docker.
+# ---------------------------------------------------------------
+FROM node:22-bookworm-slim
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends chromium fonts-liberation ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    CHROME_PATH=/usr/bin/chromium \
+    NODE_OPTIONS=--no-deprecation \
+    BASE_URL=http://app:3000
+
+WORKDIR /qa
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts && npm cache clean --force
+
+COPY .pa11yci.js lighthouserc.js ./
+COPY scripts ./scripts
+
+# Run both gates even if the first fails (so both reports exist),
+# then exit non-zero if either one failed.
+CMD ["sh", "-c", "npm run gate:a11y; A=$?; npm run gate:perf; P=$?; npm run gate:summary; echo \"a11y exit=$A  perf exit=$P\"; [ $A -eq 0 ] && [ $P -eq 0 ]"]

@@ -1,0 +1,249 @@
+name: CI/CD · Accessibility & Performance Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same branch cancels the older, still-running pipeline
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "22"
+  NODE_OPTIONS: --no-deprecation
+  PUPPETEER_SKIP_DOWNLOAD: "true"          # use the runner's Chrome instead
+  PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+  CHROME_PATH: /usr/bin/google-chrome
+  BASE_URL: http://localhost:3000
+
+jobs:
+  # ------------------------------------------------------------------
+  build-test:
+    name: 1 · Lint & unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Lint (ESLint)
+        run: npm run lint
+      - name: Unit, route and static accessibility tests (Jest)
+        run: npx jest --ci --coverage --reporters=default --reporters=jest-junit
+        env:
+          JEST_JUNIT_OUTPUT_DIR: reports/junit
+      - name: Upload test & coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports
+          path: reports/
+          retention-days: 14
+
+  # ------------------------------------------------------------------
+  docker:
+    name: 2 · Build Docker image & smoke test
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Lint Dockerfiles (hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: warning
+      - uses: docker/setup-buildx-action@v3
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: a11ygate:ci
+          build-args: GIT_SHA=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Run container and wait until healthy
+        run: |
+          docker run -d --name app -p 3000:3000 a11ygate:ci
+          timeout 60 bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" app)" = "healthy" ]; do sleep 2; done'
+      - name: Smoke test
+        run: |
+          curl -fsS localhost:3000/healthz | tee /dev/stderr | grep -q '"commit":"${{ github.sha }}"'
+          for path in / /events /events/1 /about /api/events; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "localhost:3000$path")
+            echo "$path -> $code"; [ "$code" = "200" ]
+          done
+          echo "Image size: $(docker image inspect a11ygate:ci --format '{{.Size}}' | numfmt --to=iec)"
+      - name: Save image for the next jobs
+        run: docker save a11ygate:ci | gzip > image.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: image.tar.gz
+          retention-days: 3
+
+  # ------------------------------------------------------------------
+  a11y:
+    name: 3a · Accessibility gate (pa11y-ci)
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Start the built image
+        run: |
+          gunzip -c image.tar.gz | docker load
+          docker run -d --name app -p 3000:3000 a11ygate:ci
+          timeout 60 bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" app)" = "healthy" ]; do sleep 2; done'
+      - name: pa11y-ci · axe-core + HTML_CodeSniffer · WCAG 2 AA
+        run: npm run gate:a11y
+      - name: Upload accessibility report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa11y-report
+          path: reports/pa11y/
+          retention-days: 14
+
+  # ------------------------------------------------------------------
+  performance:
+    name: 3b · Performance gate (Lighthouse CI)
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Start the built image
+        run: |
+          gunzip -c image.tar.gz | docker load
+          docker run -d --name app -p 3000:3000 a11ygate:ci
+          timeout 60 bash -c 'until [ "$(docker inspect -f "{{.State.Health.Status}}" app)" = "healthy" ]; do sleep 2; done'
+      - name: Lighthouse CI · scores + performance budgets
+        run: npm run gate:perf
+      - name: Publish a shareable Lighthouse link
+        if: always()
+        continue-on-error: true
+        run: npx lhci upload --config=lighthouserc.js --target=temporary-public-storage
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: reports/lighthouse/
+          retention-days: 14
+
+  # ------------------------------------------------------------------
+  report:
+    name: 4 · Quality report
+    needs: [a11y, performance]
+    if: always() && needs.a11y.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: pa11y-report
+          path: reports/pa11y
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: lighthouse-report
+          path: reports/lighthouse
+        continue-on-error: true
+      - name: Write summary table to this run's Summary page
+        run: node scripts/summarize-reports.js
+      - name: Comment the results on the pull request
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: quality-gate
+          path: reports/summary.md
+
+  # ------------------------------------------------------------------
+  publish:
+    name: 5 · Push image to GitHub Container Registry
+    needs: [a11y, performance]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag and push the exact image that passed the gates
+        id: push
+        run: |
+          gunzip -c image.tar.gz | docker load
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker tag a11ygate:ci "$IMAGE:${GITHUB_SHA::7}"
+          docker tag a11ygate:ci "$IMAGE:latest"
+          docker push "$IMAGE:${GITHUB_SHA::7}"
+          docker push "$IMAGE:latest"
+          echo "image=$IMAGE:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------------
+  deploy:
+    name: 6 · Deploy to Render
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - name: Trigger Render deploy of the new image
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          IMAGE: ${{ needs.publish.outputs.image }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::RENDER_DEPLOY_HOOK_URL secret not set, skipping deploy (see README, section 'Deploy to Render')."
+            exit 0
+          fi
+          # URL-encode the image reference and pass it so Render deploys exactly this tag
+          ENCODED=$(printf '%s' "$IMAGE" | jq -sRr @uri)
+          curl -fsS -X POST "${HOOK}&imgURL=${ENCODED}"
+      - name: Wait for the new version to go live
+        if: vars.PRODUCTION_URL != ''
+        run: |
+          for i in $(seq 1 40); do
+            body=$(curl -fsS "${{ vars.PRODUCTION_URL }}/healthz" || true)
+            echo "Attempt $i: $body"
+            echo "$body" | grep -q "\"commit\":\"${{ github.sha }}\"" && { echo "Deployed ✅"; exit 0; }
+            sleep 15
+          done
+          echo "::error::New version did not go live within 10 minutes"; exit 1

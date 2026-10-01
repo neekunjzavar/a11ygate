@@ -1,0 +1,16 @@
+<%- include('partials/head') %>
+<h1>About this project</h1>
+<p class="lead">Campus Events is the sample application for a DevOps Lab mini project: an <strong>accessibility and performance quality gate</strong> in a CI/CD pipeline.</p>
+
+<h2>What the pipeline checks on every push</h2>
+<ol class="steps">
+  <li><strong>Lint and unit tests</strong> with ESLint and Jest, including static HTML checks (every image has alt text, every input has a label, one <code>h1</code> per page).</li>
+  <li><strong>Docker build</strong> of the production image, then a smoke test against the running container.</li>
+  <li><strong>Accessibility scan</strong> of every page with pa11y-ci using two engines, axe-core and HTML_CodeSniffer, against WCAG 2 AA.</li>
+  <li><strong>Lighthouse CI</strong> with minimum scores and performance budgets (page weight, script size, Largest Contentful Paint).</li>
+  <li><strong>Deploy</strong> only if every gate passes.</li>
+</ol>
+
+<h2>Why it matters</h2>
+<p>About one in six people worldwide live with a significant disability. Accessibility bugs are cheapest to fix when they are caught before they are merged, which is exactly what a pipeline gate does.</p>
+<%- include('partials/foot') %>

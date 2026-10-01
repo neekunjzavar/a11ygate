@@ -1,0 +1,27 @@
+# Quality gates in containers (used by Jenkins, also works on any laptop):
+#
+#   docker build -t a11ygate:ci .
+#   docker compose -f docker-compose.ci.yml up --build --abort-on-container-exit --exit-code-from qa
+#
+# "app" is the exact production image that will be deployed.
+# "qa" waits until app is healthy, then runs pa11y-ci and Lighthouse CI against it.
+services:
+  app:
+    image: ${IMAGE:-a11ygate:ci}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  qa:
+    build:
+      context: .
+      dockerfile: Dockerfile.qa
+    image: a11ygate-qa:latest
+    environment:
+      BASE_URL: http://app:3000
+    depends_on:
+      app:
+        condition: service_healthy
+    shm_size: "1gb" # Chromium needs more than Docker's default 64 MB of /dev/shm

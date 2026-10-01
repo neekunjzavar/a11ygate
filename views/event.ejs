@@ -1,0 +1,55 @@
+<%- include('partials/head') %>
+<p><a href="/events">&larr; Back to all events</a></p>
+
+<article class="event-detail">
+  <h1><%= event.title %></h1>
+  <img src="/images/<%= event.image %>" alt="" width="640" height="320">
+  <dl class="facts">
+    <div><dt>When</dt><dd><time datetime="<%= event.date %>T<%= event.time %>"><%= formatDate(event.date) %>, <%= event.time %></time></dd></div>
+    <div><dt>Where</dt><dd><%= event.venue %></dd></div>
+    <div><dt>Category</dt><dd><%= event.category %></dd></div>
+    <div><dt>Seats left</dt><dd><%= seatsLeft(event) %> of <%= event.seats %></dd></div>
+  </dl>
+  <p><%= event.description %></p>
+</article>
+
+<section class="register" aria-labelledby="register-title">
+  <h2 id="register-title">Register</h2>
+
+  <% if (registered) { %>
+    <div class="alert alert-success" role="status">
+      <p><strong>You're registered, <%= values.name %>.</strong> A confirmation would be sent to <%= values.email %>.</p>
+    </div>
+  <% } else { %>
+    <% const errorKeys = Object.keys(errors); %>
+    <% if (errorKeys.length) { %>
+      <div class="alert alert-error" role="alert" aria-labelledby="error-summary-title">
+        <h3 id="error-summary-title">There is a problem</h3>
+        <ul>
+          <% errorKeys.forEach(function (key) { %>
+            <li><a href="#<%= key === 'form' ? 'name' : key %>"><%= errors[key] %></a></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <form action="/events/<%= event.id %>/register" method="post" novalidate>
+      <div class="field">
+        <label for="name">Full name</label>
+        <input id="name" name="name" type="text" autocomplete="name" required
+               value="<%= values.name || '' %>"
+               <% if (errors.name) { %>aria-invalid="true" aria-describedby="name-error"<% } %>>
+        <% if (errors.name) { %><p class="field-error" id="name-error"><%= errors.name %></p><% } %>
+      </div>
+      <div class="field">
+        <label for="email">College email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required
+               value="<%= values.email || '' %>"
+               <% if (errors.email) { %>aria-invalid="true" aria-describedby="email-error"<% } %>>
+        <% if (errors.email) { %><p class="field-error" id="email-error"><%= errors.email %></p><% } %>
+      </div>
+      <button class="button" type="submit">Register for this event</button>
+    </form>
+  <% } %>
+</section>
+<%- include('partials/foot') %>

@@ -1,0 +1,12 @@
+<li class="card">
+  <img src="/images/<%= event.image %>" alt="" width="320" height="160" loading="lazy">
+  <div class="card-body">
+    <p class="tag tag-<%= event.category %>"><%= event.category %></p>
+    <h3><a href="/events/<%= event.id %>"><%= event.title %></a></h3>
+    <p class="meta">
+      <time datetime="<%= event.date %>T<%= event.time %>"><%= formatDate(event.date) %>, <%= event.time %></time>
+      <br><%= event.venue %>
+    </p>
+    <p><%= event.summary %></p>
+  </div>
+</li>

@@ -1,0 +1,36 @@
+<%- include('partials/head') %>
+<h1>All events</h1>
+
+<form class="filter-form" action="/events" method="get" role="search" aria-label="Filter events">
+  <div class="field">
+    <label for="q">Search</label>
+    <input id="q" name="q" type="search" value="<%= q %>" placeholder="e.g. Docker, football">
+  </div>
+  <div class="field">
+    <label for="category">Category</label>
+    <select id="category" name="category">
+      <option value="">All categories</option>
+      <% CATEGORIES.forEach(function (c) { %>
+        <option value="<%= c.value %>" <% if (c.value === category) { %>selected<% } %>><%= c.label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button class="button" type="submit">Apply filters</button>
+  <% if (q || category) { %><a class="link-reset" href="/events">Clear filters</a><% } %>
+</form>
+
+<p class="result-count" role="status">
+  <%= results.length %> <%= results.length === 1 ? 'event' : 'events' %> found
+</p>
+
+<% if (results.length) { %>
+  <h2 class="visually-hidden">Results</h2>
+  <ul class="card-grid">
+    <% results.forEach(function (event) { %>
+      <%- include('partials/event-card', { event }) %>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p>No events match your filters. Try a different search word or <a href="/events">show all events</a>.</p>
+<% } %>
+<%- include('partials/foot') %>

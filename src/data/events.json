@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "title": "Intro to Docker Workshop",
+    "category": "workshop",
+    "date": "2026-10-14",
+    "time": "14:00",
+    "venue": "Lab 304, IT Block",
+    "seats": 40,
+    "summary": "Hands-on session on images, containers, volumes and Docker Compose.",
+    "description": "Bring your laptop with Docker Desktop installed. We will build a small Node.js service, containerise it, and run a multi-container setup with Docker Compose. No prior container experience needed.",
+    "image": "workshop.svg"
+  },
+  {
+    "id": 2,
+    "title": "Inter-College Hackathon 2026",
+    "category": "tech",
+    "date": "2026-10-24",
+    "time": "09:00",
+    "venue": "Main Auditorium",
+    "seats": 120,
+    "summary": "24-hour hackathon with themes on sustainability, health and accessibility.",
+    "description": "Teams of 2 to 4 build a working prototype in 24 hours. Mentors from industry will be available through the night. Food and Wi-Fi provided. Prizes for the top three teams and a special award for the most accessible product.",
+    "image": "tech.svg"
+  },
+  {
+    "id": 3,
+    "title": "Annual Cultural Fest: Rang",
+    "category": "cultural",
+    "date": "2026-11-06",
+    "time": "17:30",
+    "venue": "Open Air Theatre",
+    "seats": 500,
+    "summary": "Music, dance and drama performances from every department.",
+    "description": "Three evenings of performances, food stalls and an art exhibition. Department teams can register their acts with the cultural committee until 25 October.",
+    "image": "cultural.svg"
+  },
+  {
+    "id": 4,
+    "title": "Inter-Department Football League",
+    "category": "sports",
+    "date": "2026-10-18",
+    "time": "07:00",
+    "venue": "College Ground",
+    "seats": 200,
+    "summary": "Knockout football tournament between all engineering departments.",
+    "description": "Each department may enter one squad of up to 15 players. Matches are 2 halves of 30 minutes. Spectators are welcome; seating is first come, first served.",
+    "image": "sports.svg"
+  },
+  {
+    "id": 5,
+    "title": "Web Accessibility Talk",
+    "category": "tech",
+    "date": "2026-10-21",
+    "time": "11:00",
+    "venue": "Seminar Hall 2",
+    "seats": 80,
+    "summary": "Why accessibility matters and how to test for it automatically.",
+    "description": "An introduction to WCAG 2.2, screen readers and keyboard navigation, followed by a live demo of automated accessibility testing with axe-core and Lighthouse in a CI pipeline.",
+    "image": "tech.svg"
+  },
+  {
+    "id": 6,
+    "title": "Git and GitHub Bootcamp",
+    "category": "workshop",
+    "date": "2026-10-10",
+    "time": "10:00",
+    "venue": "Lab 201, IT Block",
+    "seats": 60,
+    "summary": "Branching, pull requests, merge conflicts and GitHub Actions basics.",
+    "description": "A practical bootcamp covering everyday Git: commits, branches, rebasing, resolving conflicts, pull requests and code review, ending with a first GitHub Actions workflow.",
+    "image": "workshop.svg"
+  },
+  {
+    "id": 7,
+    "title": "Photography Walk",
+    "category": "cultural",
+    "date": "2026-10-27",
+    "time": "06:30",
+    "venue": "Meet at Main Gate",
+    "seats": 30,
+    "summary": "Early morning photo walk around campus with the photography club.",
+    "description": "Phones and cameras both welcome. Club members will share tips on composition and light. The best photos will be shown at the cultural fest exhibition.",
+    "image": "cultural.svg"
+  },
+  {
+    "id": 8,
+    "title": "Badminton Doubles Open",
+    "category": "sports",
+    "date": "2026-11-02",
+    "time": "16:00",
+    "venue": "Indoor Sports Complex",
+    "seats": 64,
+    "summary": "Open doubles tournament for students and staff.",
+    "description": "Register as a pair. Matches are best of three games to 21 points. Shuttles are provided; bring your own racquet if you have one.",
+    "image": "sports.svg"
+  }
+]

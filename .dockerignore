@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+reports
+coverage
+.lighthouseci
+.demo-backup
+.git
+.github
+jenkins
+.hadolint.yaml
+docs
+tests
+*.md
+Dockerfile*
+docker-compose*.yml
+Jenkinsfile
+.env

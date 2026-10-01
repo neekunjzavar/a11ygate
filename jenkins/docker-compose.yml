@@ -1,0 +1,21 @@
+# Local Jenkins for the demo:   cd jenkins && docker compose up -d --build
+# Open http://localhost:8080 and unlock with:
+#   docker compose exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+#
+# Jenkins talks to the host's Docker through the mounted socket, so the
+# images it builds and the staging container (port 8081) run on your machine.
+# Running as root keeps socket permissions simple. Fine for a lab, not for production.
+services:
+  jenkins:
+    build: .
+    image: a11ygate-jenkins:lts
+    user: root
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:

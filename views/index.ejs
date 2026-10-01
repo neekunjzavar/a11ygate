@@ -1,0 +1,28 @@
+<%- include('partials/head') %>
+<section class="hero" aria-labelledby="hero-title">
+  <div>
+    <h1 id="hero-title">What's happening on campus</h1>
+    <p class="lead">Workshops, tech talks, fests and tournaments in one place. Find an event and register in under a minute.</p>
+    <p><a class="button" href="/events">Browse all events</a></p>
+  </div>
+  <img class="hero-img" src="/images/hero.svg" alt="Illustration of three students performing on a stage under a gold star" width="360" height="240">
+</section>
+
+<section aria-labelledby="upcoming-title">
+  <h2 id="upcoming-title">Coming up next</h2>
+  <ul class="card-grid">
+    <% upcoming.forEach(function (event) { %>
+      <%- include('partials/event-card', { event }) %>
+    <% }) %>
+  </ul>
+</section>
+
+<section aria-labelledby="browse-title">
+  <h2 id="browse-title">Browse by category</h2>
+  <ul class="pill-list">
+    <% CATEGORIES.forEach(function (c) { %>
+      <li><a class="pill" href="/events?category=<%= c.value %>"><%= c.label %></a></li>
+    <% }) %>
+  </ul>
+</section>
+<%- include('partials/foot') %>

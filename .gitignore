@@ -1,0 +1,9 @@
+node_modules/
+reports/
+.lighthouseci/
+.demo-backup/
+coverage/
+public/js/analytics-bundle.js
+.env
+*.log
+.DS_Store

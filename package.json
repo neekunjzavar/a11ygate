@@ -1,0 +1,65 @@
+{
+  "name": "a11ygate-campus-events",
+  "version": "1.0.0",
+  "description": "Campus Events web app with an accessibility and performance quality gate in its CI/CD pipeline (DevOps Lab mini project)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "lint": "eslint .",
+    "test": "jest --coverage",
+    "gate:a11y": "pa11y-ci --config .pa11yci.js",
+    "gate:perf": "node scripts/run-lhci.js",
+    "gate:summary": "node scripts/summarize-reports.js",
+    "gate": "start-server-and-test start http://localhost:3000/healthz \"npm run gate:a11y && npm run gate:perf\"",
+    "ci": "npm run lint && npm test && npm run gate",
+    "demo:break-markup": "node scripts/demo.js break-markup",
+    "demo:break-contrast": "node scripts/demo.js break-contrast",
+    "demo:break-a11y": "node scripts/demo.js break-a11y",
+    "demo:break-perf": "node scripts/demo.js break-perf",
+    "demo:reset": "node scripts/demo.js reset"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "compression": "^1.8.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@lhci/cli": "^0.15.1",
+    "cheerio": "^1.2.0",
+    "eslint": "^10.11.0",
+    "globals": "^17.13.0",
+    "jest": "^30.5.2",
+    "jest-junit": "^17.0.0",
+    "pa11y-ci": "^4.1.1",
+    "pa11y-ci-reporter-html": "^8.1.1",
+    "start-server-and-test": "^3.0.12",
+    "supertest": "^7.3.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "reports/coverage",
+    "coverageReporters": [
+      "text-summary",
+      "lcov"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 80,
+        "branches": 70
+      }
+    }
+  }
+}

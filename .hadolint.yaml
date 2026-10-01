@@ -1,0 +1,6 @@
+# Pinning exact apt package versions is overkill for a lab project and breaks
+# when Debian publishes security updates, so this rule is relaxed.
+ignored:
+  - DL3008
+  # "USER node" is the official non-root user in node images, so a named user is fine
+  - DL3066
