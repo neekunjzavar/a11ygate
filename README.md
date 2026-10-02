@@ -1,6 +1,6 @@
 # A11yGate: Accessibility & Performance Quality Gate in a CI/CD Pipeline
 
-![CI/CD](https://github.com/OWNER/REPO/actions/workflows/ci-cd.yml/badge.svg)
+![CI/CD](https://github.com/neekunjzavar/a11ygate/actions/workflows/ci-cd.yml/badge.svg)
 
 **DevOps Lab mini project.** A small but complete web app, *Campus Events*, delivered through a CI/CD pipeline that **refuses to ship a build that is inaccessible or slow**. Every push is linted, unit tested, containerised with Docker, then scanned by three layers of accessibility and performance checks. Only a build that passes all of them is published and deployed.
 
@@ -74,8 +74,8 @@ a11ygate/
 You need **Node.js 22+**, **Git**, **Google Chrome**, and **Docker Desktop** for the container steps.
 
 ```bash
-git clone https://github.com/OWNER/REPO.git
-cd REPO
+git clone https://github.com/neekunjzavar/a11ygate.git
+cd a11ygate
 npm ci                 # also downloads a Chromium for pa11y (about 150 MB, first time only)
 npm run dev            # http://localhost:3000
 ```
