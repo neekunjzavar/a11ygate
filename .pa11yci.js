@@ -6,7 +6,7 @@
  * against WCAG 2 level AA. Any error fails the pipeline.
  *
  * BASE_URL lets the same config test a dev server, a Docker container, or
- * the live deployment, e.g.  BASE_URL=http://app:3000 npm run gate:a11y
+ * the live deployment, e.g.  BASE_URL=http://web:3000 npm run gate:a11y
  */
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
