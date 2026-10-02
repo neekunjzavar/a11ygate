@@ -3,10 +3,14 @@
 #   docker build -t a11ygate:ci .
 #   docker compose -f docker-compose.ci.yml up --build --abort-on-container-exit --exit-code-from qa
 #
-# "app" is the exact production image that will be deployed.
-# "qa" waits until app is healthy, then runs pa11y-ci and Lighthouse CI against it.
+# "web" is the exact production image that will be deployed.
+# "qa" waits until web is healthy, then runs pa11y-ci and Lighthouse CI against it.
+#
+# Don't rename "web" to "app": .app is a real top-level domain on Chrome's HSTS
+# preload list, so Chromium forces https://app:3000 and every page fails with
+# net::ERR_SSL_PROTOCOL_ERROR.
 services:
-  app:
+  web:
     image: ${IMAGE:-a11ygate:ci}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/healthz"]
@@ -20,8 +24,8 @@ services:
       dockerfile: Dockerfile.qa
     image: a11ygate-qa:latest
     environment:
-      BASE_URL: http://app:3000
+      BASE_URL: http://web:3000
     depends_on:
-      app:
+      web:
         condition: service_healthy
     shm_size: "1gb" # Chromium needs more than Docker's default 64 MB of /dev/shm

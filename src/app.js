@@ -27,7 +27,7 @@ function createApp() {
     helmet({
       contentSecurityPolicy: {
         directives: {
-          // Off because CI reaches the container over plain http://app:3000;
+          // Off because CI reaches the container over plain http://web:3000;
           // with it on, the browser rewrites CSS/image URLs to https and they fail.
           // In production Render terminates HTTPS in front of the app anyway.
           upgradeInsecureRequests: null
